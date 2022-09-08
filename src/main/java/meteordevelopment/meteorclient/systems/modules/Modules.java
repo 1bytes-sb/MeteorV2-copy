@@ -387,6 +387,7 @@ public class Modules extends System<Modules> {
         add(new AntiBot());
         add(new AnchorAura());
         add(new AnchorAura1());
+        add(new AnchorGod());
         add(new AntiAnchor());
         add(new AntiAnvil());
         add(new AntiBed());
