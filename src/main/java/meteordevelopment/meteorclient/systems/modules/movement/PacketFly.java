@@ -23,125 +23,71 @@ public class PacketFly extends Module {
     private final SettingGroup sgClient = settings.createGroup("client");
     private final SettingGroup sgBypass = settings.createGroup("bypass");
 
+
     private final Setting<Double> horizontalSpeed = sgMovement.add(new DoubleSetting.Builder()
-            .name("horizontal-speed")
-            .description("Horizontal speed in blocks per second.")
-            .defaultValue(5.2)
-            .min(0.0)
-            .max(20.0)
-            .sliderMin(0.0)
-            .sliderMax(20.0)
-            .build()
+        .name("horizontal-speed")
+        .description("Horizontal speed in blocks per tick(actually im not sure but im assuming it is).")
+        .defaultValue(0.3)
+        .min(0.0)
+        .max(2.0)
+        .sliderMin(0.0)
+        .sliderMax(2.0)
+        .build()
     );
 
     private final Setting<Double> verticalSpeed = sgMovement.add(new DoubleSetting.Builder()
-            .name("vertical-speed")
-            .description("Vertical speed in blocks per second.")
-            .defaultValue(1.24)
-            .min(0.0)
-            .max(20.0)
-            .sliderMin(0.0)
-            .sliderMax(20.0)
-            .build()
+        .name("vertical-speed")
+        .description("Vertical speed in blocks per tick.")
+        .defaultValue(0.5)
+        .min(0.0)
+        .max(2.0)
+        .sliderMin(0.0)
+        .sliderMax(2.0)
+        .build()
     );
-
-    private final Setting<Boolean> sendTeleport = sgMovement.add(new BoolSetting.Builder()
-            .name("teleport")
-            .description("Sends teleport packets.")
-            .defaultValue(true)
-            .build()
-    );
-
-    private final Setting<Boolean> setYaw = sgClient.add(new BoolSetting.Builder()
-            .name("set-yaw")
-            .description("Sets yaw client side.")
-            .defaultValue(true)
-            .build()
-    );
-
-    private final Setting<Boolean> setMove = sgClient.add(new BoolSetting.Builder()
-            .name("set-move")
-            .description("Sets movement client side.")
-            .defaultValue(false)
-            .build()
-    );
-
-    private final Setting<Boolean> setPos = sgClient.add(new BoolSetting.Builder()
-            .name("set-pos")
-            .description("Sets position client side.")
-            .defaultValue(false)
-            .build()
-    );
-
-    private final Setting<Boolean> setID = sgClient.add(new BoolSetting.Builder()
-            .name("set-id")
-            .description("Updates teleport id when a position packet is received.")
-            .defaultValue(false)
-            .build()
-    );
-
-    private final Setting<Boolean> antiKick = sgBypass.add(new BoolSetting.Builder()
-            .name("anti-kick")
-            .description("Moves down occasionally to prevent kicks.")
-            .defaultValue(true)
-            .build()
-    );
-
     private final Setting<Integer> downDelay = sgBypass.add(new IntSetting.Builder()
-            .name("down-delay")
-            .description("How often you move down when not flying upwards. (ticks)")
-            .defaultValue(4)
-            .sliderMin(1)
-            .sliderMax(30)
-            .min(1)
-            .max(30)
-            .build()
+        .name("down-delay")
+        .description("How often to fall (antikick).")
+        .defaultValue(4)
+        .sliderMin(1)
+        .sliderMax(30)
+        .min(1)
+        .max(30)
+        .build()
+    );
+    private final Setting<Boolean> cancelPackets = sgBypass.add(new BoolSetting.Builder()
+        .name("cancel-packets")
+        .description("Cancel rubberband packets clientside.")
+        .defaultValue(false)
+        .build()
     );
 
-    private final Setting<Integer> downDelayFlying = sgBypass.add(new IntSetting.Builder()
-            .name("flying-down-delay")
-            .description("How often you move down when flying upwards. (ticks)")
-            .defaultValue(10)
-            .sliderMin(1)
-            .sliderMax(30)
-            .min(1)
-            .max(30)
-            .build()
-    );
-
-    private final Setting<Boolean> invalidPacket = sgBypass.add(new BoolSetting.Builder()
-            .name("invalid-packet")
-            .description("Sends invalid movement packets.")
-            .defaultValue(false)
-            .build()
-    );
-
-    private int flightCounter = 0;
-    private int teleportID = 0;
-
+    private Vec3d cachedPos;
+    private int timer = 0;
     public PacketFly() {
         super(Categories.World, "packet-fly", "Fly using packets.");
     }
 
+    @Override
+    public void onEnable(boolean inWorld)
+    {
+        if (!inWorld)
+            return;
+
+        super.onEnable(inWorld);
+
+        cachedPos = mc.player.getRootVehicle().getPos();
+    }
+
     @EventHandler
     public void onSendMovementPackets(SendMovementPacketsEvent.Pre event) {
-        mc.player.setVelocity(0.0,0.0,0.0);
-        double speed = 0.0;
-        boolean checkCollisionBoxes = checkHitBoxes();
-
-        speed = mc.player.input.jumping && (checkCollisionBoxes || !(mc.player.input.movementForward != 0.0 || mc.player.input.movementSideways != 0.0)) ? (antiKick.get() && !checkCollisionBoxes ? (resetCounter(downDelayFlying.get()) ? -0.032 : verticalSpeed.get()/20) : verticalSpeed.get()/20) : (mc.player.input.sneaking ? verticalSpeed.get()/-20 : (!checkCollisionBoxes ? (resetCounter(downDelay.get()) ? (antiKick.get() ? -0.04 : 0.0) : 0.0) : 0.0));
-
-        Vec3d horizontal = PlayerUtils.getHorizontalVelocity(horizontalSpeed.get());
-
-        mc.player.setVelocity(horizontal.x, speed, horizontal.z);
-        sendPackets(mc.player.getVelocity().x, mc.player.getVelocity().y, mc.player.getVelocity().z, sendTeleport.get());
+        mc.player.setVelocity(Vec3d.ZERO);
+        event.setCancelled(true);
     }
 
     @EventHandler
     public void onMove (PlayerMoveEvent event) {
-        if (setMove.get() && flightCounter != 0) {
-            event.movement = new Vec3d(mc.player.getVelocity().x, mc.player.getVelocity().y, mc.player.getVelocity().z);
-        }
+        event.setCancelled(true);
     }
 
     @EventHandler
@@ -153,56 +99,73 @@ public class PacketFly extends Module {
 
     @EventHandler
     public void onPacketReceive(PacketEvent.Receive event) {
-        if (event.packet instanceof PlayerPositionLookS2CPacket && !(mc.player == null || mc.world == null)) {
-            PlayerPositionLookS2CPacket packet = (PlayerPositionLookS2CPacket) event.packet;
-            if (setYaw.get()) {
-                ((PlayerPositionLookS2CPacketAccessor) event.packet).setPitch(mc.player.getPitch());
-                ((PlayerPositionLookS2CPacketAccessor) event.packet).setYaw(mc.player.getYaw());
+        if (event.getPacket() instanceof PlayerPositionLookS2CPacket) {
+            PlayerPositionLookS2CPacket p = (PlayerPositionLookS2CPacket) event.getPacket();
+
+            p.yaw = mc.player.getYaw();
+            p.pitch = mc.player.getPitch();
+
+            if (getSetting(4).asToggle().getState()) {
+                event.setCancelled(true);
             }
-            if (setID.get()) {
-                teleportID = packet.getTeleportId();
+        }
+    }
+
+
+    @EventHandler
+    public void onPreTick(TickEvent.Pre event)
+    {
+        if (!mc.player.isAlive())
+            return;
+
+        double hspeed = horizontalSpeed.get();
+        double vspeed = verticalSpeed.get();
+        timer++;
+
+        Vec3d forward = new Vec3d(0, 0, hspeed).rotateY(-(float) Math.toRadians(mc.player.getYaw()));
+        Vec3d moveVec = Vec3d.ZERO;
+
+        if (mc.player.input.pressingForward) {
+            moveVec = moveVec.add(forward);
+        }
+        if (mc.player.input.pressingBack) {
+            moveVec = moveVec.add(forward.negate());
+        }
+        if (mc.player.input.jumping) {
+            moveVec = moveVec.add(0, vspeed, 0);
+        }
+        if (mc.player.input.sneaking) {
+            moveVec = moveVec.add(0, -vspeed, 0);
+        }
+        if (mc.player.input.pressingLeft) {
+            moveVec = moveVec.add(forward.rotateY((float) Math.toRadians(90)));
+        }
+        if (mc.player.input.pressingRight) {
+            moveVec = moveVec.add(forward.rotateY((float) -Math.toRadians(90)));
+        }
+
+        Entity target = mc.player.getRootVehicle();
+        //if phase is on(it always is lol)
+        //if (getSetting(0).asMode().getMode() == 0) {
+            if (timer > getSetting(3).asSlider().getValue()) {
+                moveVec = moveVec.add(0, -vspeed, 0);
+                timer = 0;
             }
-        }
-    }
 
-    private boolean checkHitBoxes() {
-        return !mc.world.getBlockCollisions(mc.player, mc.player.getBoundingBox().stretch(-0.0625,-0.0625,-0.0625)).iterator().hasNext();
-    }
+            cachedPos = cachedPos.add(moveVec);
 
-    private boolean resetCounter(int counter) {
-        if (++flightCounter >= counter) {
-            flightCounter = 0;
-            return true;
-        }
-        return false;
-    }
+            //target.noClip = true;
+            target.updatePositionAndAngles(cachedPos.x, cachedPos.y, cachedPos.z, mc.player.getYaw(), mc.player.getPitch());
+            if (target != mc.player) {
+                mc.player.networkHandler.sendPacket(new VehicleMoveC2SPacket(target));
+            } else {
+                mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(cachedPos.x, cachedPos.y, cachedPos.z, false));
+                mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(cachedPos.x, cachedPos.y - 0.01, cachedPos.z, true));
+            }
 
-    private void sendPackets(double x, double y, double z, boolean teleport) {
-        Vec3d vec = new Vec3d(x, y, z);
-        Vec3d position = mc.player.getPos().add(vec);
-        Vec3d outOfBoundsVec = outOfBoundsVec(vec, position);
-        packetSender(new PlayerMoveC2SPacket.PositionAndOnGround(position.x, position.y, position.z, mc.player.isOnGround()));
-        if (invalidPacket.get()) {
-            packetSender(new PlayerMoveC2SPacket.PositionAndOnGround(outOfBoundsVec.x, outOfBoundsVec.y, outOfBoundsVec.z, mc.player.isOnGround()));
-        }
-        if (setPos.get()) {
-            mc.player.setPos(position.x, position.y, position.z);
-        }
-        teleportPacket(position, teleport);
-    }
 
-    private void teleportPacket(Vec3d pos, boolean shouldTeleport) {
-        if (shouldTeleport) {
-            mc.player.networkHandler.sendPacket(new TeleportConfirmC2SPacket(++teleportID));
-        }
-    }
 
-    private Vec3d outOfBoundsVec(Vec3d offset, Vec3d position) {
-        return position.add(0.0, 1500.0, 0.0);
-    }
 
-    private void packetSender(PlayerMoveC2SPacket packet) {
-        packets.add(packet);
-        mc.player.networkHandler.sendPacket(packet);
-    }
+
+
 }
