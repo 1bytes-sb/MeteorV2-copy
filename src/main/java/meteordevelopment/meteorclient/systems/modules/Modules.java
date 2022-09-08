@@ -384,6 +384,7 @@ public class Modules extends System<Modules> {
 
     private void initCombat() {
         add(new AimAssist());
+        add(new AntiBot());
         add(new AnchorAura());
         add(new AnchorAura1());
         add(new AntiAnchor());
@@ -406,6 +407,7 @@ public class Modules extends System<Modules> {
         add(new BowAimbot());
         add(new BowSpam());
         add(new Burrow());
+        add(new BlockIn());
         add(new Criticals());
         add(new CrystalAura());
         add(new Hitboxes());
@@ -542,6 +544,7 @@ public class Modules extends System<Modules> {
         add(new AutoShearer());
         add(new AutoSign());
         add(new AutoSmelter());
+        add(new AntiVanish());
         add(new BuildHeight());
         add(new EChestFarmer());
         add(new EndermanLook());
