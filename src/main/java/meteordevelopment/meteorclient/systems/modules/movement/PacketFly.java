@@ -1,5 +1,7 @@
-package meteordevelopment.meteorclient.systems.modules.world;
+package meteordevelopment.meteorclient.systems.modules.movement;
 
+
+import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Modules;
@@ -10,8 +12,10 @@ import meteordevelopment.meteorclient.mixin.PlayerPositionLookS2CPacketAccessor;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket;
+import net.minecraft.network.packet.c2s.play.VehicleMoveC2SPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
 import net.minecraft.util.math.Vec3d;
 
@@ -45,8 +49,8 @@ public class PacketFly extends Module {
         .sliderMax(2.0)
         .build()
     );
-    private final Setting<Integer> downDelay = sgBypass.add(new IntSetting.Builder()
-        .name("down-delay")
+    private final Setting<Integer> fallDelay = sgBypass.add(new IntSetting.Builder()
+        .name("fall-delay")
         .description("How often to fall (antikick).")
         .defaultValue(4)
         .sliderMin(1)
@@ -69,12 +73,8 @@ public class PacketFly extends Module {
     }
 
     @Override
-    public void onEnable(boolean inWorld)
+    public void onActivate()
     {
-        if (!inWorld)
-            return;
-
-        super.onEnable(inWorld);
 
         cachedPos = mc.player.getRootVehicle().getPos();
     }
@@ -82,12 +82,13 @@ public class PacketFly extends Module {
     @EventHandler
     public void onSendMovementPackets(SendMovementPacketsEvent.Pre event) {
         mc.player.setVelocity(Vec3d.ZERO);
-        event.setCancelled(true);
+        //event.setCancelled(true);
     }
 
     @EventHandler
     public void onMove (PlayerMoveEvent event) {
-        event.setCancelled(true);
+
+        //event.setCancelled(true);
     }
 
     @EventHandler
@@ -99,13 +100,13 @@ public class PacketFly extends Module {
 
     @EventHandler
     public void onPacketReceive(PacketEvent.Receive event) {
-        if (event.getPacket() instanceof PlayerPositionLookS2CPacket) {
-            PlayerPositionLookS2CPacket p = (PlayerPositionLookS2CPacket) event.getPacket();
+        if (event.packet instanceof PlayerPositionLookS2CPacket) {
+            PlayerPositionLookS2CPacket p = (PlayerPositionLookS2CPacket) event.packet;
 
-            p.yaw = mc.player.getYaw();
-            p.pitch = mc.player.getPitch();
+            //p.yaw = mc.player.getYaw();
+            ///p.pitch = mc.player.getPitch();
 
-            if (getSetting(4).asToggle().getState()) {
+            if (cancelPackets.get()) {
                 event.setCancelled(true);
             }
         }
@@ -113,8 +114,7 @@ public class PacketFly extends Module {
 
 
     @EventHandler
-    public void onPreTick(TickEvent.Pre event)
-    {
+    public void onPostTick(TickEvent.Post event) {
         if (!mc.player.isAlive())
             return;
 
@@ -147,25 +147,22 @@ public class PacketFly extends Module {
         Entity target = mc.player.getRootVehicle();
         //if phase is on(it always is lol)
         //if (getSetting(0).asMode().getMode() == 0) {
-            if (timer > getSetting(3).asSlider().getValue()) {
-                moveVec = moveVec.add(0, -vspeed, 0);
-                timer = 0;
-            }
+        if (timer > fallDelay.get()) {
+            moveVec = moveVec.add(0, -vspeed, 0);
+            timer = 0;
+        }
 
-            cachedPos = cachedPos.add(moveVec);
+        cachedPos = cachedPos.add(moveVec);
 
-            //target.noClip = true;
-            target.updatePositionAndAngles(cachedPos.x, cachedPos.y, cachedPos.z, mc.player.getYaw(), mc.player.getPitch());
-            if (target != mc.player) {
-                mc.player.networkHandler.sendPacket(new VehicleMoveC2SPacket(target));
-            } else {
-                mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(cachedPos.x, cachedPos.y, cachedPos.z, false));
-                mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(cachedPos.x, cachedPos.y - 0.01, cachedPos.z, true));
-            }
-
-
+        //target.noClip = true;
+        target.updatePositionAndAngles(cachedPos.x, cachedPos.y, cachedPos.z, mc.player.getYaw(), mc.player.getPitch());
+        if (target != mc.player) {
+            mc.player.networkHandler.sendPacket(new VehicleMoveC2SPacket(target));
+        } else {
+            mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(cachedPos.x, cachedPos.y, cachedPos.z, false));
+            mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(cachedPos.x, cachedPos.y - 0.01, cachedPos.z, true));
+        }
 
 
-
-
+    }
 }
