@@ -69,7 +69,7 @@ public class PacketFly extends Module {
     private Vec3d cachedPos;
     private int timer = 0;
     public PacketFly() {
-        super(Categories.World, "packet-fly", "Fly using packets.");
+        super(Categories.Movement, "packet-fly", "Fly using packets.");
     }
 
     @Override
