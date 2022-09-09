@@ -3,6 +3,7 @@ package meteordevelopment.meteorclient.util.services;
 import meteordevelopment.meteorclient.Reaper;
 import meteordevelopment.meteorclient.utils.os.FileHelper;
 import meteordevelopment.meteorclient.utils.network.Http;
+import meteordevelopment.meteorclient.utils.services.TL;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.util.Identifier;

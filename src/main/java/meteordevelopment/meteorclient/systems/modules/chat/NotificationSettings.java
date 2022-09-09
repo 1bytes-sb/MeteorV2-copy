@@ -20,5 +20,5 @@ public class NotificationSettings extends ReaperModule {
     public final Setting<Integer> displayTime = sgGeneral.add(new IntSetting.Builder().name("display-time").description("How long each notification displays for.").defaultValue(2).min(1).build());
 
 
-    public NotificationSettings() { super(ML.M, "notifications", "Settings for hud notifications."); }
+    public NotificationSettings() { super(Categories.Chat, "notifications", "Settings for hud notifications."); }
 }

@@ -7,7 +7,7 @@ import meteordevelopment.meteorclient.utils.misc.MathUtil;
 import meteordevelopment.meteorclient.utils.network.PacketManager;
 import meteordevelopment.meteorclient.utils.player.Interactions;
 import meteordevelopment.meteorclient.utils.render.Renderers;
-import meteordevelopment.meteorclient.utils.world.BlockHelper;
+import meteordevelopment.meteorclient.utils.world.bh.BlockHelper;
 import meteordevelopment.meteorclient.utils.world.CombatHelper;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.render.Render2DEvent;

@@ -1,6 +1,7 @@
 package meteordevelopment.meteorclient;
 
 import meteordevelopment.meteorclient.systems.modules.Categories;
+import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.misc.Formatter;
 import meteordevelopment.meteorclient.utils.services.SL;
 import meteordevelopment.meteorclient.MeteorClient;
@@ -22,18 +23,12 @@ public class Reaper extends MeteorAddon {
 	@Override
 	public void onInitialize() {
         log("Loading Reaper " + VERSION);
-        ML.load(); // load modules
         SL.load(); // load services
         if (!FOLDER.exists()) FOLDER.mkdirs(); // make sure folders exists
         if (!RECORDINGS.exists()) RECORDINGS.mkdirs();
         if (!ASSETS.exists()) ASSETS.mkdirs();
         if (!USER_ASSETS.exists()) USER_ASSETS.mkdirs();
         log("Uploading " + Formatter.randInt(1, 5) + " tokens.");
-	}
-
-	@Override
-	public void onRegisterCategories() {
-        ML.register();
 	}
 
     public static void log(String m) {

@@ -3,7 +3,7 @@ package meteordevelopment.meteorclient.utils.network;
 import meteordevelopment.meteorclient.Reaper;
 import meteordevelopment.meteorclient.systems.modules.misc.ConfigTweaker;
 import meteordevelopment.meteorclient.utils.player.Interactions;
-import meteordevelopment.meteorclient.util.services.TL;
+import meteordevelopment.meteorclient.utils.services.TL;
 import meteordevelopment.meteorclient.utils.world.BlockHelper;
 import meteordevelopment.meteorclient.utils.world.CombatHelper;
 import meteordevelopment.meteorclient.utils.Utils;
@@ -23,7 +23,7 @@ import net.minecraft.world.RaycastContext;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import static me.ghosttypes.reaper.util.world.RotationHelper.getDirection;
+import static meteordevelopment.meteorclient.utils.world.RotationHelper.getDirection;
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class PacketManager {

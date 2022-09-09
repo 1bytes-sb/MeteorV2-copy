@@ -1,6 +1,7 @@
 package meteordevelopment.meteorclient.utils.services;
 
 import meteordevelopment.meteorclient.Reaper;
+import meteordevelopment.meteorclient.util.services.ResourceLoaderService;
 import meteordevelopment.meteorclient.systems.modules.misc.RPC;
 import meteordevelopment.meteorclient.utils.misc.MathUtil;
 import meteordevelopment.meteorclient.utils.misc.MessageUtil;
@@ -15,7 +16,6 @@ public class SL { // Service loader
         long start = MathUtil.now();
         OSUtil.init(); // setup current os for stuff like spotify
         ResourceLoaderService.init(); // download assets
-        MeteorClient.EVENT_BUS.subscribe(GlobalManager.class);
         //GlobalManager.init();
         MessageUtil.init();
         NotificationManager.init();
