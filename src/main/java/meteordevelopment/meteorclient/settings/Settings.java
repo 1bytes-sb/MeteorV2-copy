@@ -32,7 +32,8 @@ public class Settings implements ISerializable<Settings>, Iterable<SettingGroup>
         }
     }
 
-    public Setting<?> get(String name) {
+    public Setting<?> get(String name)
+    {
         for (SettingGroup sg : this) {
             for (Setting<?> setting : sg) {
                 if (name.equalsIgnoreCase(setting.name)) return setting;
