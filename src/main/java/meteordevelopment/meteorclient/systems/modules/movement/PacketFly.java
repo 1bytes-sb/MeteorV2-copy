@@ -120,7 +120,7 @@ public class PacketFly extends Module {
     private int teleportID = 0;
 
     public PacketFly() {
-        super(Categories.World, "packet-fly", "Fly using packets.");
+        super(Categories.Movement, "packet-fly", "Fly using packets.");
     }
 
     @EventHandler
